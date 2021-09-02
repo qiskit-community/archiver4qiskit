@@ -57,7 +57,7 @@ def get_backend(backend_name):
     return backend
 
 
-def submit_job(backend_name, circuits, path='',
+def submit_job(circuits, backend_name, path='',
                job_name=None, job_share_level=None, job_tags=None, experiment_id=None, header=None,
                shots=None, memory=None, qubit_lo_freq=None, meas_lo_freq=None, schedule_los=None,
                meas_level=None, meas_return=None, memory_slots=None, memory_slot_size=None,
