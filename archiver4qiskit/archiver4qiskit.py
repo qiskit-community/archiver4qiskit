@@ -15,14 +15,23 @@ class Archive():
     A serializable equivalent to the Qiskit job object.
     '''
     def __init__(self, job, ):
-        self.job_id = job.job_id()
-        self.backend = job.backend()
-        self.metadata = job.metadata
+        self._job_id = job.job_id()
+        self._backend = job.backend()
+        self._metadata = job.metadata
         self.version = job.version
         if 'aer' in self.backend.name():
             self._result = job.result()
         else:
             self._result = None
+        
+    def job_id(self):
+        return self._job_id
+    
+    def backend(self):
+        return self._backend
+    
+    def metadata(self):
+        return self._job_id
         
     def result(self):
         if self._result==None:
