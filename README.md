@@ -28,4 +28,4 @@ To retreive an archive object use
 archive = get_archive(archive_id)
 ```
 
-This object functions much the same as the Qiskit job object. For example, `archive.result()` provides the results.
+This object functions much the same as the Qiskit job object. For example, `archive.result()` provides the results. Once obtained, the results are incorporated into the saved archive.
