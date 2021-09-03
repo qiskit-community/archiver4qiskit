@@ -8,21 +8,36 @@ IBMQ.load_account()
 
 def _prep():
     if 'archive' not in os.listdir():
-        os.mkdir('archive')
+        os.mkdir('archive')     
+_prep()
                     
 class Archive():
     '''
     A serializable equivalent to the Qiskit job object.
     '''
-    def __init__(self, job, ):
+    def __init__(self, job, path=''):
+        
+        if 'job_id' in dir(job):
+            self.archive_id = job.job_id() + '@' + job.backend().name()
+        else:
+            self.archive_id = uuid.uuid4().hex + '@' + job.backend().name()
+
+        self.path = path
+        
         self._job_id = job.job_id()
         self._backend = job.backend()
         self._metadata = job.metadata
         self.version = job.version
-        if 'aer' in self.backend.name():
+        if 'aer' in self.backend().name():
             self._result = job.result()
         else:
             self._result = None
+            
+        self.save()
+            
+    def save(self):
+        with open(self.path + 'archive/'+self.archive_id, 'wb') as file:
+            pickle.dump(self, file)
         
     def job_id(self):
         return self._job_id
@@ -35,9 +50,10 @@ class Archive():
         
     def result(self):
         if self._result==None:
-            backend = get_backend(self.backend.name())
-            job = backend.retrieve_job(self.job_id)
+            backend = get_backend(self.backend().name())
+            job = backend.retrieve_job(self.job_id())
             self._result = job.result()
+            self.save()
         return self._result
         
             
@@ -79,7 +95,8 @@ def submit_job(circuits, backend_name, path='',
     
     # get backend
     backend = get_backend(backend_name)
-    backend_name = backend.name() 
+    print(type(backend),backend.name)
+    backend_name = backend.name()
     
     # submit job
     job = backend.run(circuits, job_name=None, job_share_level=None, job_tags=None, experiment_id=None, header=None,
@@ -90,22 +107,13 @@ def submit_job(circuits, backend_name, path='',
 
     # create archive
     archive = Archive(job)
-    if 'job_id' in dir(job):
-        archive_id = job.job_id() + '@' + backend_name
-    else:
-        archive_id = uuid.uuid4().hex + '@' + backend_name
     
     # if an Aer job, get the results
     if 'aer' in job.backend().name():
         archive.result()
-       
-    # save the archive
-    _prep() 
-    with open(path + 'archive/'+archive_id, 'wb') as file:
-        pickle.dump(Archive(job), file)
         
     # return the id
-    return archive_id
+    return archive.archive_id
 
 
 def get_job(archive_id):
