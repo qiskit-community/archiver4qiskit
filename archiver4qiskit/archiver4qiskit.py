@@ -133,3 +133,18 @@ def get_archive(archive_id, path=''):
     with open(path + 'archive/'+archive_id, 'rb') as file:
         archive = pickle.load(file)
     return archive
+
+
+def jobid2archive(job_id, backend_name):
+    
+    backend = get_backend(backend_name)
+    job = backend.retrieve_job(job_id)
+    
+    archive = Archive(job)
+    archive.result()
+    
+    return archive.archive_id
+    
+    
+    
+    
