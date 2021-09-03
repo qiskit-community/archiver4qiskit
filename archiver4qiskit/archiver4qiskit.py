@@ -95,7 +95,7 @@ def submit_job(circuits, backend_name, path='',
     
     # get backend
     backend = get_backend(backend_name)
-    print(type(backend),backend.name)
+    
     backend_name = backend.name()
     
     # submit job
