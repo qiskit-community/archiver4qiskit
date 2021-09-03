@@ -95,14 +95,16 @@ def submit_job(circuits, backend_name, path='',
     
     # get backend
     backend = get_backend(backend_name)
-    
+
     backend_name = backend.name()
     
     # submit job
-    job = backend.run(circuits, job_name=None, job_share_level=None, job_tags=None, experiment_id=None, header=None,
-                      shots=None, memory=None, qubit_lo_freq=None, meas_lo_freq=None, schedule_los=None,
-                      meas_level=None, meas_return=None, memory_slots=None, memory_slot_size=None,
-                      rep_time=None, rep_delay=None, init_qubits=None, parameter_binds=None, use_measure_esp=None,
+    job = backend.run(circuits, job_name=job_name, job_share_level=job_share_level, job_tags=job_tags,
+                      experiment_id=experiment_id, header=header, shots=shots, memory=memory,
+                      qubit_lo_freq=qubit_lo_freq, meas_lo_freq=eas_lo_freq, schedule_los=schedule_los,
+                      meas_level=meas_level, meas_return=meas_return, memory_slots=memory_slots,
+                      memory_slot_size=memory_slot_size, rep_time=rep_time, rep_delay=rep_delay, init_qubits=init_qubits,
+                      parameter_binds=parameter_binds, use_measure_esp=use_measure_esp,
                       **run_config)
 
     # create archive
