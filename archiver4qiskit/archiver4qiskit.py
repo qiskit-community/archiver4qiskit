@@ -18,7 +18,7 @@ class Archive():
     '''
     A serializable equivalent to the Qiskit job object.
     '''
-    def __init__(self, job, path=''):
+    def __init__(self, job, path='', note=''):
         
         if 'job_id' in dir(job):
             self.archive_id = job.job_id() + '@' + job.backend().name()
@@ -27,6 +27,7 @@ class Archive():
 
         self.path = path
         
+        self.note = note
         self._job_id = job.job_id()
         self._backend = job.backend()
         self._metadata = job.metadata
