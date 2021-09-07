@@ -28,6 +28,7 @@ class Archive():
         self._backend = job.backend()
         self._metadata = job.metadata
         self.version = job.version
+        self.circuits = job.circuits
         if 'aer' in self.backend().name():
             self._result = job.result()
         else:
@@ -76,7 +77,7 @@ def get_backend(backend_name):
                             backend = potential_backend
                             no_backend = False
             if no_backend:
-                print('No backend was found matching '+device+' with your providers.')
+                print('No backend was found matching '+backend_name+' with your providers.')
     else:
         backend = backend_name
     return backend
