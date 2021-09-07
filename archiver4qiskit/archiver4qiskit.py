@@ -4,7 +4,10 @@ from qiskit import IBMQ, Aer
 import uuid
 import pickle
 
-IBMQ.load_account()
+try:
+    IBMQ.load_account()
+except:
+    print('Unable to load IBMQ account')
 
 def _prep():
     if 'archive' not in os.listdir():
