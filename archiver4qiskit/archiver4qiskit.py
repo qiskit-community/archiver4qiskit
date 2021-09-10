@@ -32,7 +32,10 @@ class Archive():
         self._backend = job.backend()
         self._metadata = job.metadata
         self.version = job.version
-        self.circuits = job.circuits
+        try:
+            self._circuits = job.circuits()
+        except:
+            self._qobj = job.qobj()
         if 'aer' in self.backend().name():
             self._result = job.result()
         else:
@@ -52,6 +55,12 @@ class Archive():
     
     def metadata(self):
         return self._job_id
+    
+    def circuits(self):
+        return self._circuits
+    
+    def qobj(self):
+        return self._qobj
         
     def result(self):
         if self._result==None:
@@ -87,7 +96,7 @@ def get_backend(backend_name):
     return backend
 
 
-def submit_job(circuits, backend_name, path='',
+def submit_job(circuits, backend_name, path='', note='',
                job_name=None, job_share_level=None, job_tags=None, experiment_id=None, header=None,
                shots=None, memory=None, qubit_lo_freq=None, meas_lo_freq=None, schedule_los=None,
                meas_level=None, meas_return=None, memory_slots=None, memory_slot_size=None,
@@ -113,7 +122,7 @@ def submit_job(circuits, backend_name, path='',
                       **run_config)
 
     # create archive
-    archive = Archive(job)
+    archive = Archive(job, note=note)
     
     # if an Aer job, get the results
     if 'aer' in job.backend().name():
