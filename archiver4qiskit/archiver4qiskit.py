@@ -30,6 +30,7 @@ class Archive():
         self.note = note
         self._job_id = job.job_id()
         self._backend = job.backend()
+        self._backend.properties() # just needs to be called to load
         self._metadata = job.metadata
         self.version = job.version
         try:
