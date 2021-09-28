@@ -18,7 +18,7 @@ class Archive():
     '''
     A serializable equivalent to the Qiskit job object.
     '''
-    def __init__(self, job, path='', note=''):
+    def __init__(self, job, path='', note='', circuits=None):
         
         if 'job_id' in dir(job):
             self.archive_id = job.job_id() + '@' + job.backend().name()
@@ -33,9 +33,11 @@ class Archive():
         self._backend.properties() # just needs to be called to load
         self._metadata = job.metadata
         self.version = job.version
-        try:
+        if 'circuits' in dir(job):
             self._circuits = job.circuits()
-        except:
+        else:
+            self._circuits = circuits
+        if 'qobj' in dir(job):
             self._qobj = job.qobj()
         if 'aer' in self.backend().name():
             self._result = job.result()
@@ -123,7 +125,7 @@ def submit_job(circuits, backend_name, path='', note='',
                       **run_config)
 
     # create archive
-    archive = Archive(job, note=note)
+    archive = Archive(job, note=note, circuits=circuits)
     
     # if an Aer job, get the results
     if 'aer' in job.backend().name():
@@ -161,7 +163,3 @@ def jobid2archive(job_id, backend_name):
     archive.result()
     
     return archive.archive_id
-    
-    
-    
-    
