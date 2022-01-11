@@ -111,10 +111,11 @@ def submit_job(circuits, backend_name, path='', note='',
     '''
     
     # get backend
-    backend = get_backend(backend_name)
-
-    backend_name = backend.name()
-    
+    if type(backend_name)==str:
+        backend = get_backend(backend_name)
+    else:
+        backend = backend
+        
     # submit job
     job = backend.run(circuits, job_name=job_name, job_share_level=job_share_level, job_tags=job_tags,
                       experiment_id=experiment_id, header=header, shots=shots, memory=memory,
