@@ -39,7 +39,7 @@ class Archive():
             self._circuits = circuits
         if 'qobj' in dir(job):
             self._qobj = job.qobj()
-        if 'aer' in self.backend().name():
+        if 'aer' in self.backend().name() or 'simulator' in self.backend().name():
             self._result = job.result()
         else:
             self._result = None
@@ -117,20 +117,25 @@ def submit_job(circuits, backend_name, path='', note='',
         backend = backend_name
         
     # submit job
-    job = backend.run(circuits, job_name=job_name, job_share_level=job_share_level, job_tags=job_tags,
-                      experiment_id=experiment_id, header=header, shots=shots, memory=memory,
-                      qubit_lo_freq=qubit_lo_freq, meas_lo_freq=meas_lo_freq, schedule_los=schedule_los,
-                      meas_level=meas_level, meas_return=meas_return, memory_slots=memory_slots,
-                      memory_slot_size=memory_slot_size, rep_time=rep_time, rep_delay=rep_delay, init_qubits=init_qubits,
-                      parameter_binds=parameter_binds, use_measure_esp=use_measure_esp, noise_model=noise_model,
-                      **run_config)
+    if 'fake' not in backend.name():
+        job = backend.run(circuits, job_name=job_name, job_share_level=job_share_level, job_tags=job_tags,
+                          experiment_id=experiment_id, header=header, shots=shots, memory=memory,
+                          qubit_lo_freq=qubit_lo_freq, meas_lo_freq=meas_lo_freq, schedule_los=schedule_los,
+                          meas_level=meas_level, meas_return=meas_return, memory_slots=memory_slots,
+                          memory_slot_size=memory_slot_size, rep_time=rep_time, rep_delay=rep_delay, init_qubits=init_qubits,
+                          parameter_binds=parameter_binds, use_measure_esp=use_measure_esp, noise_model=noise_model,
+                          **run_config)
+    else:
+        job = backend.run(circuits, job_name=job_name, job_share_level=job_share_level, job_tags=job_tags,
+                          experiment_id=experiment_id, header=header, shots=shots, memory=memory,
+                          qubit_lo_freq=qubit_lo_freq, meas_lo_freq=meas_lo_freq, schedule_los=schedule_los,
+                          meas_level=meas_level, meas_return=meas_return, memory_slots=memory_slots,
+                          memory_slot_size=memory_slot_size, rep_time=rep_time, rep_delay=rep_delay, init_qubits=init_qubits,
+                          parameter_binds=parameter_binds, use_measure_esp=use_measure_esp,
+                          **run_config)
 
     # create archive
     archive = Archive(job, note=note, circuits=circuits)
-    
-    # if an Aer job, get the results
-    if 'aer' in job.backend().name():
-        archive.result()
         
     # return the id
     return archive.archive_id
