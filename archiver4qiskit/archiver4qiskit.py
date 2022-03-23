@@ -74,7 +74,7 @@ class Archive():
         return self._result
         
             
-def get_backend(backend_name):
+def get_backend(backend_name, provider=None):
     '''
     Given a string that specifies a backend, returns the backend object
     '''
@@ -82,8 +82,11 @@ def get_backend(backend_name):
         if 'aer' in backend_name:
             backend = Aer.get_backend(backend_name)
         else:
-            providers = IBMQ.providers()
-            p = 0
+            if provider==None:
+                providers = IBMQ.providers()
+            else:
+                hub, group, project = provider.split('/')
+                providers = [IBMQ.get_provider(hub, group, project)]
             no_backend = True
             for provider in providers:
                 if no_backend:
