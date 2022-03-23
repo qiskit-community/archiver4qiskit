@@ -39,7 +39,7 @@ class Archive():
             self._circuits = circuits
         if 'qobj' in dir(job):
             self._qobj = job.qobj()
-        if 'aer' in self.backend().name():
+        if 'aer' in self.backend().name() or 'simulator' in self.backend().name():
             self._result = job.result()
         else:
             self._result = None
@@ -74,7 +74,7 @@ class Archive():
         return self._result
         
             
-def get_backend(backend_name):
+def get_backend(backend_name, provider=None):
     '''
     Given a string that specifies a backend, returns the backend object
     '''
@@ -82,8 +82,11 @@ def get_backend(backend_name):
         if 'aer' in backend_name:
             backend = Aer.get_backend(backend_name)
         else:
-            providers = IBMQ.providers()
-            p = 0
+            if provider==None:
+                providers = IBMQ.providers()
+            else:
+                hub, group, project = provider.split('/')
+                providers = [IBMQ.get_provider(hub, group, project)]
             no_backend = True
             for provider in providers:
                 if no_backend:
@@ -104,32 +107,38 @@ def submit_job(circuits, backend_name, path='', note='',
                shots=None, memory=None, qubit_lo_freq=None, meas_lo_freq=None, schedule_los=None,
                meas_level=None, meas_return=None, memory_slots=None, memory_slot_size=None,
                rep_time=None, rep_delay=None, init_qubits=None, parameter_binds=None, use_measure_esp=None,
-               **run_config):
+               noise_model=None, **run_config):
     '''
     Given a backend name and the arguments for the `run` method of the backend object, submits the job
     and returns the archive id.
     '''
     
     # get backend
-    backend = get_backend(backend_name)
-
-    backend_name = backend.name()
-    
+    if type(backend_name) is str:
+        backend = get_backend(backend_name)
+    else:
+        backend = backend_name
+        
     # submit job
-    job = backend.run(circuits, job_name=job_name, job_share_level=job_share_level, job_tags=job_tags,
-                      experiment_id=experiment_id, header=header, shots=shots, memory=memory,
-                      qubit_lo_freq=qubit_lo_freq, meas_lo_freq=meas_lo_freq, schedule_los=schedule_los,
-                      meas_level=meas_level, meas_return=meas_return, memory_slots=memory_slots,
-                      memory_slot_size=memory_slot_size, rep_time=rep_time, rep_delay=rep_delay, init_qubits=init_qubits,
-                      parameter_binds=parameter_binds, use_measure_esp=use_measure_esp,
-                      **run_config)
+    if 'fake' not in backend.name():
+        job = backend.run(circuits, job_name=job_name, job_share_level=job_share_level, job_tags=job_tags,
+                          experiment_id=experiment_id, header=header, shots=shots, memory=memory,
+                          qubit_lo_freq=qubit_lo_freq, meas_lo_freq=meas_lo_freq, schedule_los=schedule_los,
+                          meas_level=meas_level, meas_return=meas_return, memory_slots=memory_slots,
+                          memory_slot_size=memory_slot_size, rep_time=rep_time, rep_delay=rep_delay, init_qubits=init_qubits,
+                          parameter_binds=parameter_binds, use_measure_esp=use_measure_esp, noise_model=noise_model,
+                          **run_config)
+    else:
+        job = backend.run(circuits, job_name=job_name, job_share_level=job_share_level, job_tags=job_tags,
+                          experiment_id=experiment_id, header=header, shots=shots, memory=memory,
+                          qubit_lo_freq=qubit_lo_freq, meas_lo_freq=meas_lo_freq, schedule_los=schedule_los,
+                          meas_level=meas_level, meas_return=meas_return, memory_slots=memory_slots,
+                          memory_slot_size=memory_slot_size, rep_time=rep_time, rep_delay=rep_delay, init_qubits=init_qubits,
+                          parameter_binds=parameter_binds, use_measure_esp=use_measure_esp,
+                          **run_config)
 
     # create archive
     archive = Archive(job, note=note, circuits=circuits)
-    
-    # if an Aer job, get the results
-    if 'aer' in job.backend().name():
-        archive.result()
         
     # return the id
     return archive.archive_id
