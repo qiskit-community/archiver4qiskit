@@ -21,9 +21,17 @@ class Archive():
     def __init__(self, job, path='', note='', circuits=None):
         
         if 'job_id' in dir(job):
-            self.archive_id = job.job_id() + '@' + job.backend().name()
+            job_id = job.job_id()
         else:
-            self.archive_id = uuid.uuid4().hex + '@' + job.backend().name()
+            job_id = uuid.uuid4().hex
+            
+        if 'credentials' in dir(job.backend().provider()):
+            creds = job.backend().provider().credentials
+            provider = creds.hub +'_'+ creds.group +'_'+ creds.project
+        else:
+            provider = str(job.backend().provider())
+          
+        self.archive_id = job_id + '@' + job.backend().name() + '@' + provider
 
         self.path = path
         
@@ -67,7 +75,12 @@ class Archive():
         
     def result(self):
         if self._result==None:
-            backend = get_backend(self.backend().name())
+            try:
+                creds = self.backend().provider().credentials
+                provider = creds.hub +'_'+ creds.group +'_'+ creds.project
+                backend = get_backend(self.backend().name(), provider=provider)
+            except:
+                backend = get_backend(self.backend().name())
             job = backend.retrieve_job(self.job_id())
             self._result = job.result()
             self.save()
@@ -85,7 +98,7 @@ def get_backend(backend_name, provider=None):
             if provider==None:
                 providers = IBMQ.providers()
             else:
-                hub, group, project = provider.split('/')
+                hub, group, project = provider.split('_')
                 providers = [IBMQ.get_provider(hub, group, project)]
             no_backend = True
             for provider in providers:
@@ -104,7 +117,7 @@ def get_backend(backend_name, provider=None):
 
 def submit_job(circuits, backend_name, path='', note='',
                job_name=None, job_share_level=None, job_tags=None, experiment_id=None, header=None,
-               shots=None, memory=None, qubit_lo_freq=None, meas_lo_freq=None, schedule_los=None,
+               shots=8192, memory=None, qubit_lo_freq=None, meas_lo_freq=None, schedule_los=None,
                meas_level=None, meas_return=None, memory_slots=None, memory_slot_size=None,
                rep_time=None, rep_delay=None, init_qubits=None, parameter_binds=None, use_measure_esp=None,
                noise_model=None, **run_config):
@@ -148,8 +161,8 @@ def get_job(archive_id):
     '''
     Returns the Qiskit job object corresponding to a given archive_id
     '''
-    job_id, backend_name = archive_id.split('@')
-    backend = get_backend(backend_name)
+    job_id, backend_name, provider = archive_id.split('@')
+    backend = get_backend(backend_name, provider = provider)
     job = backend.retrieve_job(job_id)
     return job
 
@@ -158,17 +171,25 @@ def get_archive(archive_id, path=''):
     '''
     Returns the saved archive object corresponding to a given archive_id
     '''
-    with open(path + 'archive/'+archive_id, 'rb') as file:
+    
+    # create archive if file doesn't exist
+    filename = path + 'archive/'+archive_id
+    if archive_id not in os.listdir(path + 'archive/'):
+        job_id, backend_name, provider = archive_id.split('@')
+        new_archive_id = jobid2archive(job_id, backend_name, path=path, provider=provider)
+        assert new_archive_id==archive_id
+    
+    with open(filename, 'rb') as file:
         archive = pickle.load(file)
     return archive
 
 
-def jobid2archive(job_id, backend_name):
+def jobid2archive(job_id, backend_name, path='', provider=None):
     
-    backend = get_backend(backend_name)
+    backend = get_backend(backend_name, provider)
     job = backend.retrieve_job(job_id)
     
-    archive = Archive(job)
+    archive = Archive(job, path=path)
     archive.result()
     
     return archive.archive_id
