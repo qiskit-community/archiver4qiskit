@@ -11,7 +11,7 @@ pip install git+https://github.com/NCCR-SPIN/archiver4qiskit.git
 Import the main tools with
 
 ```
-from qiskitarchiver import submit_job, get_archive
+from qiskitarchiver import submit_job, Archive, get_archive
 ```
 
 To submit a job use
@@ -22,7 +22,19 @@ archive_id = submit_job(circuits, backend_name)
 
 Here `circuits` are the circuits to run and `backend_name` is a string specifying the backend (for example `'ibmq_bogota'` or `'aer_simulator'`). Other than `backend_name`, arguments from this are passed directly on to the relevant [`run()`](https://qiskit.org/documentation/stubs/qiskit.providers.ibmq.IBMQBackend.html#qiskit.providers.ibmq.IBMQBackend.run) function (which means you need to transpile your circuits first). The returned `archive_id` is a string used to retrieve the job from locally saved files.
 
-To retreive an archive object use
+To create an archive from an existing job object, use
+
+```
+archive = Archive(job)
+```
+
+you can then get the archive ID (used to reference it later) using
+
+```
+archive_id = archive.archive_id
+```
+
+To retreive a previously stored archive object use
 
 ```
 archive = get_archive(archive_id)
